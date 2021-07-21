@@ -1,5 +1,6 @@
 package org.extract;
 
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
@@ -9,10 +10,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Action;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.*;
 import org.apache.poi.xssf.usermodel.*;
 
 import java.io.*;
@@ -20,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.*;
 
 import static java.lang.Thread.sleep;
@@ -34,6 +33,7 @@ public class Main {
      */
     private static final Logger logger = LogManager.getLogger(Main.class);
     private static final Path employeesFolder = Paths.get("./Employees");
+    private static final Path pdfFolder = Paths.get("./PDFs");
 
     public static void main(String[] args) {
         System.setProperty("webdriver.chrome.driver", "C:\\chromedriver.exe");
@@ -59,11 +59,12 @@ public class Main {
         }
         try {
             Files.createDirectories(employeesFolder);
+            Files.createDirectories(pdfFolder);
         } catch (IOException e) {
             logger.fatal("Unable to create download directory", e);
             System.exit(1);
         }
-
+        downloadDirPath = downloadDirPath.resolve("PDFs");
         String download_dir = downloadDirPath.toString();
         ChromeOptions chromeOptions = new ChromeOptions();
         JSONObject settings = new JSONObject(
@@ -90,10 +91,16 @@ public class Main {
                         "   \"download.extensions_to_open\": \"applications/pdf\"\n" +
                         "}")
                 .put("printing.print_preview_sticky_settings.appState", settings)
-                .put("download.default_directory", download_dir);
+                .put("download.default_directory", download_dir)
+                .put("plugins.plugins_disabled", new String[] {
+                        "Adobe Flash Player",
+                        "Chrome PDF Viewer"
+                })
+                .put("plugins.always_open_pdf_externally", true);
         chromeOptions.setExperimentalOption("prefs", prefs);
         String url = "https://www.paycomonline.net/v4/cl/cl-login.php";
         WebDriver driver = new ChromeDriver(chromeOptions);
+        WebDriverWait wait = new WebDriverWait(driver, 10);
         driver.get(url);
         driver.manage().window().maximize();
         System.out.println("Please enter your client code: ");
@@ -167,6 +174,19 @@ public class Main {
 
         for (int empCount = 0; empCount < numOfEmployees; empCount++) {
 
+            WebElement empSelectContainer = driver.findElement(By.xpath("//div[@class='empSelect_Container']"));
+            String employeeString = empSelectContainer.findElement(By.xpath("./div/div/div[1]/input")).getAttribute("value");
+            String eeCode = employeeString.split("\\(|\\)")[1];
+
+            // Create a directory for each employee code
+            Path employeeFolder = employeesFolder.resolve(eeCode);
+            try {
+                Files.createDirectories(employeeFolder);
+            } catch (IOException e) {
+                logger.fatal("Unable to create download directory", e);
+                System.exit(1);
+            }
+
             options = driver.findElements(By.xpath("//select[@id='yearCheck']/option"));
             waitForLoad(driver);
             for (WebElement option : options) {
@@ -178,6 +198,7 @@ public class Main {
 
             String startDateInput = "01011900";
             String endDateInput = "12312021";
+            waitUntilClickable(driver, By.xpath("//*[@name='enddate']"));
             waitUntilClickable(driver, By.xpath("//*[@name='startdate']"));
             WebElement startDateBox = driver.findElement(By.xpath("//*[@name='startdate']"));
             WebElement endDateBox = driver.findElement(By.xpath("//*[@name='enddate']"));
@@ -187,23 +208,36 @@ public class Main {
             driver.findElement(By.xpath("//button[@type='submit']")).click();
             // Date range has been set from 01/01/1900 - 12/31/2021
 
-            // WAIT WAIT WAIT It's happening too fast so the list turns out to be 0 most of the time
+            // We wait for the files from the "Custom" time period to finish loading. When the loop breaks we move on.
+            while (!wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//*[@id='check-listings-table_processing']")))) {
+            }
             List<WebElement> paystubTableRows = driver.findElements(By.xpath("//table[@id='check-listings-table']/tbody/tr[@role='row']"));
-
             if (paystubTableRows.size() == 0) {
                     waitUntilClickable(driver, By.xpath("//a[@class='cdNextLink']"));
                     continue;
             }
             // HIT THAT M LIKE BUTTON IF YOU UP!
-
             waitUntilClickable(driver, By.xpath("//input[@id='check-listings-table-select-all']"));
+            while (!wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//*[@id='check-listings-table_processing']")))) {
+            }
             waitUntilClickable(driver, By.xpath("//a[@id='viewchecks']"));
 
+            waitUntilFileDownloaded(driver, downloadDirPath.toFile(), 60000, "earnstatements.pdf");
+            sleep(1000);
 
+            File file = Objects.requireNonNull(downloadDirPath.resolve("earnstatements.pdf").toFile());
+            String downloadName = eeCode + "_earnstatements.pdf";
+            file.renameTo(employeeFolder.resolve(downloadName).toFile());
+
+            file.delete();
             waitUntilClickable(driver, By.xpath("//a[@class='cdNextLink']"));
         }
 
         // End of main
+    }
+
+    public static void pdfDownloader(String eeCode) {
+
     }
 
     public static void waitForLoad(WebDriver driver) {
@@ -223,6 +257,24 @@ public class Main {
         WebDriverWait driverWait = new WebDriverWait(driver, 30);
         driverWait.until(ExpectedConditions.elementToBeClickable(element)).click();
         waitForLoad(driver);
+    }
+
+    public static void waitUntilFileDownloaded(WebDriver driver, File downloadDir, long timeout, String pattern) {
+        FluentWait<WebDriver> wait = new FluentWait<>(driver).withTimeout(Duration.ofMillis(timeout))
+                .pollingEvery(Duration.ofMillis(200L));
+        RegexFileFilter fileFilter = new RegexFileFilter(pattern);
+        wait.until(driver1 -> {
+            File[] files = downloadDir.listFiles((FileFilter) fileFilter);
+            return (files != null && files.length > 0);
+        });
+    }
+
+    public static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
 }
