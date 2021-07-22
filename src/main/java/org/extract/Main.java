@@ -1,5 +1,9 @@
 package org.extract;
 
+import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -100,7 +104,7 @@ public class Main {
         chromeOptions.setExperimentalOption("prefs", prefs);
         String url = "https://www.paycomonline.net/v4/cl/cl-login.php";
         WebDriver driver = new ChromeDriver(chromeOptions);
-        WebDriverWait wait = new WebDriverWait(driver, 10);
+        WebDriverWait wait = new WebDriverWait(driver, 30);
         driver.get(url);
         driver.manage().window().maximize();
         System.out.println("Please enter your client code: ");
@@ -172,20 +176,17 @@ public class Main {
         waitUntilClickable(driver, By.xpath("/html/body/div[3]/div/div[4]/div/div[2]/div[3]/div[2]/a"));
         // We are on the Year-to-date Totals page
 
+        ProgressBar progressBar = new ProgressBarBuilder().setUpdateIntervalMillis(1000)
+                                                          .setTaskName("Downloading Paystubs")
+                                                          .setInitialMax(numOfEmployees)
+                                                          .setMaxRenderedLength(120)
+                                                          .setStyle(ProgressBarStyle.ASCII)
+                                                          .build();
         for (int empCount = 0; empCount < numOfEmployees; empCount++) {
 
             WebElement empSelectContainer = driver.findElement(By.xpath("//div[@class='empSelect_Container']"));
             String employeeString = empSelectContainer.findElement(By.xpath("./div/div/div[1]/input")).getAttribute("value");
             String eeCode = employeeString.split("\\(|\\)")[1];
-
-            // Create a directory for each employee code
-            Path employeeFolder = employeesFolder.resolve(eeCode);
-            try {
-                Files.createDirectories(employeeFolder);
-            } catch (IOException e) {
-                logger.fatal("Unable to create download directory", e);
-                System.exit(1);
-            }
 
             options = driver.findElements(By.xpath("//select[@id='yearCheck']/option"));
             waitForLoad(driver);
@@ -216,28 +217,46 @@ public class Main {
                     waitUntilClickable(driver, By.xpath("//a[@class='cdNextLink']"));
                     continue;
             }
-            // HIT THAT M LIKE BUTTON IF YOU UP!
+
+            // Create a directory for each employee code
+            Path employeeFolder = employeesFolder.resolve(eeCode);
+            try {
+                Files.createDirectories(employeeFolder);
+            } catch (IOException e) {
+                logger.fatal("Unable to create download directory", e);
+                System.exit(1);
+            }
+            // Select all Payroll profiles available
             waitUntilClickable(driver, By.xpath("//input[@id='check-listings-table-select-all']"));
             while (!wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//*[@id='check-listings-table_processing']")))) {
             }
             waitUntilClickable(driver, By.xpath("//a[@id='viewchecks']"));
 
-            waitUntilFileDownloaded(driver, downloadDirPath.toFile(), 60000, "earnstatements.pdf");
+            waitUntilFileDownloaded(driver, downloadDirPath.toFile(), 60000, "^.*earnstatement.*pdf$");
             sleep(1000);
 
-            File file = Objects.requireNonNull(downloadDirPath.resolve("earnstatements.pdf").toFile());
-            String downloadName = eeCode + "_earnstatements.pdf";
-            file.renameTo(employeeFolder.resolve(downloadName).toFile());
-
-            file.delete();
+            File[] files = downloadDirPath.toFile().listFiles();
+            for (File file : files) {
+                String downloadName = eeCode + "_earnstatements.pdf";
+                if (file.toString().matches("^.*earnstatement.*pdf$")){
+                    file.renameTo(employeeFolder.resolve(downloadName).toFile());
+                    break;
+                }
+            }
+            try {
+                if (downloadDirPath.toFile().exists()) {
+                    FileUtils.cleanDirectory(downloadDirPath.toFile());
+                    sleep(1000);
+                }
+            } catch (IOException e) {
+                logger.fatal("Cleaning was unsuccessful", e);
+                System.exit(1);
+            }
             waitUntilClickable(driver, By.xpath("//a[@class='cdNextLink']"));
+            //progressBar.step();
         }
-
+        //progressBar.close();
         // End of main
-    }
-
-    public static void pdfDownloader(String eeCode) {
-
     }
 
     public static void waitForLoad(WebDriver driver) {

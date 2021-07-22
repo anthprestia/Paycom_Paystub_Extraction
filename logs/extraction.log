@@ -1,0 +1,69 @@
+2021-07-21 15:49:11,278 FATAL org.extract.Main [
+Cleaning was unsuccessful
+org.apache.commons.io.IOExceptionList: 1 exceptions: [java.io.IOException: Unable to delete file: C:\Users\aprestia\IdeaProjects\Paycom_Paystub_Extraction\PDFs\earnstatements.pdf.crdownload]
+	at org.apache.commons.io.FileUtils.cleanDirectory(FileUtils.java:345)
+	at org.extract.Main.main(Main.java:235)
+Caused by: java.io.IOException: Unable to delete file: C:\Users\aprestia\IdeaProjects\Paycom_Paystub_Extraction\PDFs\earnstatements.pdf.crdownload
+	at org.apache.commons.io.FileUtils.forceDelete(FileUtils.java:1425)
+	at org.apache.commons.io.FileUtils.cleanDirectory(FileUtils.java:338)
+	... 1 more
+Caused by: java.nio.file.FileSystemException: C:\Users\aprestia\IdeaProjects\Paycom_Paystub_Extraction\PDFs\earnstatements.pdf.crdownload: The process cannot access the file because it is being used by another process.
+
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:92)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.implDelete(WindowsFileSystemProvider.java:274)
+	at java.base/sun.nio.fs.AbstractFileSystemProvider.deleteIfExists(AbstractFileSystemProvider.java:110)
+	at java.base/java.nio.file.Files.deleteIfExists(Files.java:1181)
+	at org.apache.commons.io.file.PathUtils.deleteFile(PathUtils.java:365)
+	at org.apache.commons.io.file.PathUtils.delete(PathUtils.java:304)
+	at org.apache.commons.io.file.PathUtils.delete(PathUtils.java:280)
+	at org.apache.commons.io.FileUtils.forceDelete(FileUtils.java:1423)
+	... 2 more
+]
+2021-07-21 16:24:31,704 FATAL org.extract.Main [
+Cleaning was unsuccessful
+org.apache.commons.io.IOExceptionList: 1 exceptions: [java.io.IOException: Unable to delete file: C:\Users\aprestia\IdeaProjects\Paycom_Paystub_Extraction\PDFs\earnstatements.pdf.crdownload]
+	at org.apache.commons.io.FileUtils.cleanDirectory(FileUtils.java:345)
+	at org.extract.Main.main(Main.java:243)
+Caused by: java.io.IOException: Unable to delete file: C:\Users\aprestia\IdeaProjects\Paycom_Paystub_Extraction\PDFs\earnstatements.pdf.crdownload
+	at org.apache.commons.io.FileUtils.forceDelete(FileUtils.java:1425)
+	at org.apache.commons.io.FileUtils.cleanDirectory(FileUtils.java:338)
+	... 1 more
+Caused by: java.nio.file.FileSystemException: C:\Users\aprestia\IdeaProjects\Paycom_Paystub_Extraction\PDFs\earnstatements.pdf.crdownload: The process cannot access the file because it is being used by another process.
+
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:92)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.implDelete(WindowsFileSystemProvider.java:274)
+	at java.base/sun.nio.fs.AbstractFileSystemProvider.deleteIfExists(AbstractFileSystemProvider.java:110)
+	at java.base/java.nio.file.Files.deleteIfExists(Files.java:1181)
+	at org.apache.commons.io.file.PathUtils.deleteFile(PathUtils.java:365)
+	at org.apache.commons.io.file.PathUtils.delete(PathUtils.java:304)
+	at org.apache.commons.io.file.PathUtils.delete(PathUtils.java:280)
+	at org.apache.commons.io.FileUtils.forceDelete(FileUtils.java:1423)
+	... 2 more
+]
+2021-07-21 16:27:22,670 FATAL org.extract.Main [
+Cleaning was unsuccessful
+org.apache.commons.io.IOExceptionList: 1 exceptions: [java.io.IOException: Unable to delete file: C:\Users\aprestia\IdeaProjects\Paycom_Paystub_Extraction\PDFs\earnstatements.pdf.crdownload]
+	at org.apache.commons.io.FileUtils.cleanDirectory(FileUtils.java:345)
+	at org.extract.Main.main(Main.java:243)
+Caused by: java.io.IOException: Unable to delete file: C:\Users\aprestia\IdeaProjects\Paycom_Paystub_Extraction\PDFs\earnstatements.pdf.crdownload
+	at org.apache.commons.io.FileUtils.forceDelete(FileUtils.java:1425)
+	at org.apache.commons.io.FileUtils.cleanDirectory(FileUtils.java:338)
+	... 1 more
+Caused by: java.nio.file.FileSystemException: C:\Users\aprestia\IdeaProjects\Paycom_Paystub_Extraction\PDFs\earnstatements.pdf.crdownload: The process cannot access the file because it is being used by another process.
+
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:92)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.implDelete(WindowsFileSystemProvider.java:274)
+	at java.base/sun.nio.fs.AbstractFileSystemProvider.deleteIfExists(AbstractFileSystemProvider.java:110)
+	at java.base/java.nio.file.Files.deleteIfExists(Files.java:1181)
+	at org.apache.commons.io.file.PathUtils.deleteFile(PathUtils.java:365)
+	at org.apache.commons.io.file.PathUtils.delete(PathUtils.java:304)
+	at org.apache.commons.io.file.PathUtils.delete(PathUtils.java:280)
+	at org.apache.commons.io.FileUtils.forceDelete(FileUtils.java:1423)
+	... 2 more
+]
